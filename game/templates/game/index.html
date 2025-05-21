@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html>
+<head><title>Higher or Lower</title></head>
+<body>
+    <h1>Current Card: {{ card }}</h1>
+    <a href="{% url 'play' %}?guess=higher">Higher</a> |
+    <a href="{% url 'play' %}?guess=lower">Lower</a>
+</body>
+</html>
