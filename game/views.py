@@ -1,62 +1,91 @@
-from django.shortcuts import render
-
 import random
 from django.shortcuts import render, redirect
 from .models import Score
 
-deck = list(range(2, 15))  # 2-14, where 11=J, 12=Q, 13=K, 14=A
+from django.contrib.auth.forms import UserCreationForm
+
+def game_over(request):
+    score = request.session.get('score', 0)
+    return render(request, 'game/game_over.html', {'score': score})
+
+
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+    return render(request, 'game/register.html', {'form': form})
+
+
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+    return render(request, 'game/register.html', {'form': form})
+
+deck = list(range(2, 15))  # 2–14, where 11=J, 12=Q, 13=K, 14=A
 
 def index(request):
-    first_card = random.choice(deck)
-    request.session['current_card'] = first_card
-    return render(request, 'game/index.html', {'card': first_card})
+    # Start new game
+    request.session['score'] = 0
+    request.session['wrong_guesses'] = 0
+    request.session['current_card'] = random.choice(deck)
+    return render(request, 'game/index.html', {'card': request.session['current_card']})
 
 def play(request):
-    guess = request.GET.get('guess')
-    current_card = request.session.get('current_card', random.choice(deck))
-    wrong_guesses = request.session.get('wrong_guesses', 0)
+    if request.method != 'POST':
+        return redirect('index')  # prevent GET access
+
+    guess = request.POST.get('guess')
+    current_card = request.session.get('current_card')
     score = request.session.get('score', 0)
+    wrong_guesses = request.session.get('wrong_guesses', 0)
 
     next_card = random.choice(deck)
     result = ''
 
-    if guess:
-        if guess == 'higher' and next_card > current_card:
-            result = 'You guessed right!'
-            score += 1
-        elif guess == 'lower' and next_card < current_card:
-            result = 'You guessed right!'
-            score += 1
-        else:
-            result = 'You guessed wrong!'
-            wrong_guesses += 1
-
-    game_over = wrong_guesses >= 3
-
-    if game_over:
-        Score.objects.create(
-            player_name='Guest',  # Replace with request.user.username if using auth
-            score=score
-        )
-        # Reset game state for a new game
-        request.session['wrong_guesses'] = 0
-        request.session['score'] = 0
-        result += " Game over! Your score has been saved."
+    if guess == 'higher' and next_card > current_card:
+        result = 'You guessed right!'
+        score += 1
+    elif guess == 'lower' and next_card < current_card:
+        result = 'You guessed right!'
+        score += 1
     else:
-        request.session['wrong_guesses'] = wrong_guesses
-        request.session['score'] = score
+        result = 'You guessed wrong!'
+        wrong_guesses += 1
 
+    # Update session
+    request.session['score'] = score
+    request.session['wrong_guesses'] = wrong_guesses
     request.session['current_card'] = next_card
 
+    # Game Over condition
+    if wrong_guesses >= 3:
+        # Save score
+        Score.objects.create(player_name='Guest', score=score)
+        return redirect('game_over')
+
     return render(request, 'game/results.html', {
+        'result': result,
         'current_card': current_card,
         'next_card': next_card,
-        'result': result,
+        'score': score,
+        'wrong_guesses': wrong_guesses,
     })
 
+def game_over(request):
+    score = request.session.get('score', 0)
+    return render(request, 'game/game_over.html', {'score': score})
+
 def play_again(request):
-    # Reset session variables
-    request.session.flush()  # clears all session data
+    request.session.flush()
     return redirect('index')
 
 def leaderboard(request):

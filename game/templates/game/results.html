@@ -1,10 +1,17 @@
 <!DOCTYPE html>
 <html>
-<head><title>Result</title></head>
+<head><title>Next Round</title></head>
 <body>
     <h1>{{ result }}</h1>
-    <p>Previous card: {{ current_card }}</p>
-    <p>Next card: {{ next_card }}</p>
-    <a href="{% url 'play_again' %}">Play Again</a>
+    <p>Current card was: {{ current_card }}</p>
+    <p>Next card is: {{ next_card }}</p>
+    <p>Score: {{ score }}</p>
+    <p>Wrong guesses: {{ wrong_guesses }}</p>
+
+    <form method="post" action="{% url 'play' %}">
+        {% csrf_token %}
+        <button type="submit" name="guess" value="higher">Higher</button>
+        <button type="submit" name="guess" value="lower">Lower</button>
+    </form>
 </body>
 </html>

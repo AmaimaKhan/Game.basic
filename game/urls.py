@@ -1,9 +1,11 @@
 from django.urls import path
-from . import views
+from . import views, api_views
 
 urlpatterns = [
     path('', views.index, name='index'),
     path('play/', views.play, name='play'),
-    path('play-again/', views.play_again, name='play_again'),
     path('leaderboard/', views.leaderboard, name='leaderboard'),
+    path('game-over/', views.game_over, name='game_over'),
+    path('api/start/', api_views.start_game),
+    path('api/guess/', api_views.guess_card),
 ]
