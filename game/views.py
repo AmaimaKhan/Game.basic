@@ -8,28 +8,6 @@ def game_over(request):
     score = request.session.get('score', 0)
     return render(request, 'game/game_over.html', {'score': score})
 
-
-def register(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')
-    else:
-        form = UserCreationForm()
-    return render(request, 'game/register.html', {'form': form})
-
-
-def register(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')
-    else:
-        form = UserCreationForm()
-    return render(request, 'game/register.html', {'form': form})
-
 deck = list(range(2, 15))  # 2–14, where 11=J, 12=Q, 13=K, 14=A
 
 def index(request):
