@@ -8,33 +8,35 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 
 
-
+from django.contrib.auth.models import User
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.serializers import ValidationError
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_user(request):
-    username = request.data.get("username")
-    password = request.data.get("password")
-
-    if not username or not password:
-        return Response({"error": "Username and password are required."}, status=400)
-
-    if User.objects.filter(username=username).exists():
-        return Response({"error": "Username already exists."}, status=400)
-
     try:
-        validate_password(password)
-    except ValidationError as e:
-        return Response({"error": e.messages}, status=400)
+        username = request.data.get("username")
+        password = request.data.get("password")
 
-    User.objects.create_user(username=username, password=password)
-    return Response({"message": "User registered successfully"}, status=201)
+        if not username or not password:
+            return Response({"error": "Username and password are required."}, status=400)
+
+        if User.objects.filter(username=username).exists():
+            return Response({"error": "Username already exists."}, status=400)
+
+        validate_password(password)
+
+        User.objects.create_user(username=username, password=password)
+        return Response({"message": "User registered successfully"}, status=201)
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return Response({"error": "Internal server error", "details": str(e)}, status=500)
+
 
 
 deck = list(range(2, 15))
